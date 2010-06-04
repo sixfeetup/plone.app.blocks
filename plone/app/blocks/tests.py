@@ -1,43 +1,38 @@
-import unittest
-from zope.testing import doctest
+import unittest2 as unittest
+import doctest
+from plone.testing import layered
 
-from Testing import ZopeTestCase as ztc
-from Products.PloneTestCase import ptc
-from Products.Five import zcml
+from plone.app.testing import PLONE_FUNCTIONAL_TESTING
+from plone.app.testing import PloneSandboxLayer
+from plone.app.testing import quickInstallProduct
 
-import collective.testcaselayer.ptc
-
-import plone.app.blocks
-import plone.tiles
+from zope.configuration import xmlconfig
 
 optionflags = (doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
 
-class IntegrationTestLayer(collective.testcaselayer.ptc.BasePTCLayer):
+class PABlocks(PloneSandboxLayer):
+    defaultBases = (PLONE_FUNCTIONAL_TESTING,)
 
-    def afterSetUp(self):
-        zcml.load_config('configure.zcml', plone.app.blocks)
-        self.addProfile('plone.app.blocks:default')
+    def setUpPloneSite(self, portal):
+        
+        # load ZCML
+        import plone.app.blocks
+        import plone.tiles
+        xmlconfig.file('configure.zcml', plone.app.blocks,
+                       context=self['configurationContext'])
 
-Layer = IntegrationTestLayer([collective.testcaselayer.ptc.ptc_layer])
+        # install into the Plone site
+        quickInstallProduct(portal, 'plone.app.blocks')
 
-class FunctionalTestCase(ptc.FunctionalTestCase):
-    layer = Layer
+
+PABLOCKS_FUNCTIONAL_TESTING = PABlocks()
 
 def test_suite():
-    return unittest.TestSuite((
-        ztc.FunctionalDocFileSuite(
-            'rendering.txt',
-            package='plone.app.blocks',
-            test_class=FunctionalTestCase,
-            optionflags=optionflags),
-        ztc.FunctionalDocFileSuite(
-            'context.txt',
-            package='plone.app.blocks',
-            test_class=FunctionalTestCase,
-            optionflags=optionflags),
-        ztc.FunctionalDocFileSuite(
-            'esi.txt',
-            package='plone.app.blocks',
-            test_class=FunctionalTestCase,
-            optionflags=optionflags),
-        ))
+    suite = unittest.TestSuite()
+    suite.addTests([
+        layered(doctest.DocFileSuite('rendering.txt', 'esi.txt', 'context.txt',
+                                     optionflags=optionflags),
+                layer=PABLOCKS_FUNCTIONAL_TESTING)
+        ])
+    return suite
+        
