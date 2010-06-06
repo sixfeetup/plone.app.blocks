@@ -64,11 +64,13 @@ If we now render the page calling it with the portal object itself as
 context, the default title of the portal object, ``Plone site'' will
 be used::
 
-    >>> from Products.Five.testbrowser import Browser
-    >>> browser = Browser()
+    >>> from plone.testing.z2 import Browser
+    >>> app = layer['app']
+    >>> browser = Browser(app)
     >>> browser.handleErrors = False
 
-    >>> browser.open(self.portal.absolute_url() + '/@@page-layout')
+    >>> portal = layer['portal']
+    >>> browser.open(portal.absolute_url() + '/@@page-layout')
     >>> print browser.contents
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">               
     <html xmlns="http://www.w3.org/1999/xhtml">                       
