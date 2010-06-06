@@ -2,6 +2,7 @@ import unittest2 as unittest
 import doctest
 from plone.testing import layered
 
+from plone.app.testing import PLONE_INTEGRATION_TESTING
 from plone.app.testing import PLONE_FUNCTIONAL_TESTING
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import quickInstallProduct
@@ -11,21 +12,22 @@ from zope.configuration import xmlconfig
 optionflags = (doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
 
 class PABlocks(PloneSandboxLayer):
-    defaultBases = (PLONE_FUNCTIONAL_TESTING,)
+    defaultBases = (PLONE_INTEGRATION_TESTING,)
 
-    def setUpPloneSite(self, portal):
-        
+    def setUpZope(self, app, configurationContext):
         # load ZCML
         import plone.app.blocks
         import plone.tiles
         xmlconfig.file('configure.zcml', plone.app.blocks,
-                       context=self['configurationContext'])
+                       context=configurationContext)
 
+    def setUpPloneSite(self, portal):
         # install into the Plone site
         quickInstallProduct(portal, 'plone.app.blocks')
 
 
-PABLOCKS_FUNCTIONAL_TESTING = PABlocks()
+PABLOCKS_INTEGRATION_TESTING = PABlocks()
+PABLOCKS_FUNCTIONAL_TESTING = PABlocks(bases=(PLONE_FUNCTIONAL_TESTING,))
 
 def test_suite():
     suite = unittest.TestSuite()
