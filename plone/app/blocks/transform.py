@@ -112,13 +112,13 @@ class MergePanels(object):
             not isinstance(result, XMLSerializer):
             return None
 
-        # Set a marker in the request to let subsequent steps know the merging
-        # has happened
-        self.request['plone.app.blocks.merged'] = True
-
         tree = panel.merge(self.request, result.tree)
         if tree is None:
             return None
+
+        # Set a marker in the request to let subsequent steps know the merging
+        # has happened
+        self.request['plone.app.blocks.merged'] = True
 
         result.tree = tree
         return result
@@ -147,9 +147,6 @@ class IncludeTiles(object):
     def transformIterable(self, result, encoding):
         if not self.request.get('plone.app.blocks.enabled', False) or \
             not isinstance(result, XMLSerializer):
-            return None
-
-        if not self.request.get('plone.app.blocks.merged', False):
             return None
         
         result.tree = tiles.renderTiles(self.request, result.tree)
